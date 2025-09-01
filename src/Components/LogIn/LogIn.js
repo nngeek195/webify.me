@@ -75,7 +75,7 @@ class LogIn extends Component {
     testBackendConnection = async () => {
         try {
             // Fix: Change HTTPS to HTTP
-            const response = await fetch('https://induction-laura-categories-completed.trycloudflare.com/?utm_source=chatgpt.com/test');
+            const response = await fetch('https://induction-laura-categories-completed.trycloudflare.com/test');
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -92,7 +92,7 @@ class LogIn extends Component {
         } catch (error) {
             console.error('❌ Backend connection failed:', error);
             this.setState({
-                error: 'Cannot connect to backend. Please ensure Ballerina service is running on https://induction-laura-categories-completed.trycloudflare.com/?utm_source=chatgpt.com'
+                error: 'Cannot connect to backend. Please ensure Ballerina service is running on https://induction-laura-categories-completed.trycloudflare.com'
             });
         }
     }
@@ -149,7 +149,7 @@ class LogIn extends Component {
         console.log('📤 Sending login request for:', loginData.email);
 
         try {
-            const response = await fetch('https://induction-laura-categories-completed.trycloudflare.com/?utm_source=chatgpt.com/login', {
+            const response = await fetch('https://induction-laura-categories-completed.trycloudflare.com/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
