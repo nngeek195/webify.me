@@ -217,7 +217,7 @@ export const validateWithServer = async () => {
     }
 
     try {
-        const response = await fetch('https://induction-laura-categories-completed.trycloudflare.com/?utm_source=chatgpt.com/login', {
+        const response = await fetch('https://induction-laura-categories-completed.trycloudflare.com/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
