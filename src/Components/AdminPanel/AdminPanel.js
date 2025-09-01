@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { FaTrash, FaEdit, FaEye, FaUsers, FaBell, FaChartBar, FaSearch, FaFilter } from 'react-icons/fa';
-import { MdSend, MdNotifications, MdPeople, MdDashboard, MdEmail, MdWarning, MdInfo, MdCheckCircle } from 'react-icons/md';
+import { FaTrash, FaEdit, FaEye, FaUsers, FaBell, FaChartBar, FaSearch, FaFilter, FaKey, FaCheck, FaTimes } from 'react-icons/fa';
+import { MdSend, MdNotifications, MdPeople, MdDashboard, MdEmail, MdWarning, MdInfo, MdCheckCircle, MdSettings } from 'react-icons/md';
 import './AdminPanel.css';
 import Logo2 from '../User/Logo1.png'
 
@@ -28,7 +28,21 @@ class AdminPanel extends Component {
                 activeUsers: 0
             },
             searchTerm: '',
-            filterType: 'all'
+            filterType: 'all',
+
+            // API Keys state
+            apiKeys: {
+                gemini_api_key: '',
+                unsplash_access_key: ''
+            },
+            currentApiKeys: {
+                gemini_api_key: '',
+                unsplash_access_key: ''
+            },
+            apiKeyLoading: false,
+            apiKeySuccess: '',
+            apiKeyError: '',
+            testResults: {}
         };
     }
 
@@ -36,7 +50,106 @@ class AdminPanel extends Component {
         this.fetchAllNotifications();
         this.fetchUsers();
         this.fetchStats();
+        this.fetchCurrentApiKeys();
     }
+
+    fetchCurrentApiKeys = async () => {
+        try {
+            const response = await fetch('http://localhost:5001/admin/api-keys');
+            const data = await response.json();
+
+            if (data.success) {
+                this.setState({
+                    currentApiKeys: data.data
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching API keys:', error);
+        }
+    };
+
+    handleUpdateApiKeys = async (e) => {
+        e.preventDefault();
+
+        const { apiKeys } = this.state;
+
+        if (!apiKeys.gemini_api_key && !apiKeys.unsplash_access_key) {
+            this.setState({ apiKeyError: 'Please provide at least one API key' });
+            return;
+        }
+
+        this.setState({ apiKeyLoading: true, apiKeyError: '', apiKeySuccess: '' });
+
+        try {
+            const response = await fetch('http://localhost:5001/admin/api-keys', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(apiKeys)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.setState({
+                    apiKeySuccess: data.message,
+                    apiKeys: { gemini_api_key: '', unsplash_access_key: '' },
+                    apiKeyLoading: false
+                });
+                this.fetchCurrentApiKeys();
+            } else {
+                this.setState({
+                    apiKeyError: data.message || 'Failed to update API keys',
+                    apiKeyLoading: false
+                });
+            }
+        } catch (error) {
+            console.error('Error updating API keys:', error);
+            this.setState({
+                apiKeyError: 'Network error. Please try again.',
+                apiKeyLoading: false
+            });
+        }
+    };
+
+    handleTestApiKeys = async (testGemini = false, testUnsplash = false) => {
+        this.setState({ apiKeyLoading: true, testResults: {} });
+
+        try {
+            const response = await fetch('http://localhost:5001/admin/test-api-keys', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    test_gemini: testGemini,
+                    test_unsplash: testUnsplash
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.setState({
+                    testResults: data.data,
+                    apiKeyLoading: false
+                });
+            } else {
+                this.setState({
+                    apiKeyError: data.message || 'Failed to test API keys',
+                    apiKeyLoading: false
+                });
+            }
+        } catch (error) {
+            console.error('Error testing API keys:', error);
+            this.setState({
+                apiKeyError: 'Network error. Please try again.',
+                apiKeyLoading: false
+            });
+        }
+    };
+
 
     fetchAllNotifications = async () => {
         try {
@@ -62,7 +175,7 @@ class AdminPanel extends Component {
             const response = await fetch('https://localhost:9090/users');
             const data = await response.json();
 
-            console.log('Fetched users:', data); // Debugging log
+            console.log('Fetched users:', data);
 
             if (data.success) {
                 this.setState({
@@ -80,7 +193,6 @@ class AdminPanel extends Component {
 
     fetchStats = async () => {
         try {
-            // You can implement a dedicated stats endpoint later ngrok
             this.setState({
                 stats: {
                     ...this.state.stats,
@@ -95,6 +207,101 @@ class AdminPanel extends Component {
     handleInputChange = (e) => {
         const { name, value } = e.target;
         this.setState({ [name]: value, error: '', success: '' });
+    };
+
+    handleApiKeyChange = (e) => {
+        const { name, value } = e.target;
+        this.setState({
+            apiKeys: {
+                ...this.state.apiKeys,
+                [name]: value
+            },
+            apiKeyError: '',
+            apiKeySuccess: ''
+        });
+    };
+
+    handleUpdateApiKeys = async (e) => {
+        e.preventDefault();
+
+        const { apiKeys } = this.state;
+
+        if (!apiKeys.gemini_api_key && !apiKeys.unsplash_access_key) {
+            this.setState({ apiKeyError: 'Please provide at least one API key' });
+            return;
+        }
+
+        this.setState({ apiKeyLoading: true, apiKeyError: '', apiKeySuccess: '' });
+
+        try {
+            const response = await fetch('https://localhost:9090/admin/api-keys', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(apiKeys)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.setState({
+                    apiKeySuccess: data.message,
+                    apiKeys: { gemini_api_key: '', unsplash_access_key: '' },
+                    apiKeyLoading: false
+                });
+                // Refresh current API keys display
+                this.fetchCurrentApiKeys();
+            } else {
+                this.setState({
+                    apiKeyError: data.message || 'Failed to update API keys',
+                    apiKeyLoading: false
+                });
+            }
+        } catch (error) {
+            console.error('Error updating API keys:', error);
+            this.setState({
+                apiKeyError: 'Network error. Please try again.',
+                apiKeyLoading: false
+            });
+        }
+    };
+
+    handleTestApiKeys = async (testGemini = false, testUnsplash = false) => {
+        this.setState({ apiKeyLoading: true, testResults: {} });
+
+        try {
+            const response = await fetch('https://localhost:9090/admin/test-api-keys', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    test_gemini: testGemini,
+                    test_unsplash: testUnsplash
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.setState({
+                    testResults: data.data,
+                    apiKeyLoading: false
+                });
+            } else {
+                this.setState({
+                    apiKeyError: data.message || 'Failed to test API keys',
+                    apiKeyLoading: false
+                });
+            }
+        } catch (error) {
+            console.error('Error testing API keys:', error);
+            this.setState({
+                apiKeyError: 'Network error. Please try again.',
+                apiKeyLoading: false
+            });
+        }
     };
 
     handleSubmit = async (e) => {
@@ -133,9 +340,8 @@ class AdminPanel extends Component {
                     priority: 2,
                     loading: false
                 });
-                // Refresh user count and notifications
                 this.fetchAllNotifications();
-                this.fetchUsers(); // Refresh user count 
+                this.fetchUsers();
             } else {
                 this.setState({
                     error: data.message || 'Failed to send email notification',
@@ -150,7 +356,6 @@ class AdminPanel extends Component {
             });
         }
     };
-
 
     handleTabChange = (tab) => {
         this.setState({ activeTab: tab });
@@ -215,7 +420,13 @@ class AdminPanel extends Component {
             error,
             activeTab,
             stats,
-            searchTerm
+            searchTerm,
+            apiKeys,
+            currentApiKeys,
+            apiKeyLoading,
+            apiKeySuccess,
+            apiKeyError,
+            testResults
         } = this.state;
 
         const filteredNotifications = this.getFilteredNotifications();
@@ -251,6 +462,13 @@ class AdminPanel extends Component {
                             <FaUsers className="nav-icon" />
                             <span>User Management</span>
                         </button>
+                        <button
+                            className={`nav-button ${activeTab === 'api-keys' ? 'active' : ''}`}
+                            onClick={() => this.handleTabChange('api-keys')}
+                        >
+                            <FaKey className="nav-icon" />
+                            <span>API Keys</span>
+                        </button>
                     </nav>
                 </div>
 
@@ -259,7 +477,8 @@ class AdminPanel extends Component {
                         <h1>{
                             activeTab === 'notifications' ? 'Send Notifications' :
                                 activeTab === 'history' ? 'Notification History' :
-                                    'User Management'
+                                    activeTab === 'users' ? 'User Management' :
+                                        'API Key Management'
                         }</h1>
 
                         <div className="admin-stats">
@@ -408,6 +627,148 @@ class AdminPanel extends Component {
                             </div>
                         )}
 
+                        {/* API Keys Management Tab */}
+                        {activeTab === 'api-keys' && (
+                            <div className="api-keys-management">
+                                <div className="card">
+                                    <div className="card-header">
+                                        <FaKey className="card-icon" />
+                                        <h2>API Key Management</h2>
+                                    </div>
+
+                                    {/* Current API Keys Status */}
+                                    <div className="current-keys-section">
+                                        <h3>Current API Keys Status</h3>
+                                        <div className="keys-status">
+                                            <div className="key-status-item">
+                                                <span className="key-label">Gemini API Key:</span>
+                                                <span className="key-value">{currentApiKeys.gemini_api_key}</span>
+                                                <button
+                                                    onClick={() => this.handleTestApiKeys(true, false)}
+                                                    className="test-btn"
+                                                    disabled={apiKeyLoading}
+                                                >
+                                                    Test
+                                                </button>
+                                                {testResults.gemini && (
+                                                    <span className={`test-result ${testResults.gemini.status}`}>
+                                                        {testResults.gemini.status === 'success' ? <FaCheck /> : <FaTimes />}
+                                                        {testResults.gemini.message}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="key-status-item">
+                                                <span className="key-label">Unsplash API Key:</span>
+                                                <span className="key-value">{currentApiKeys.unsplash_access_key}</span>
+                                                <button
+                                                    onClick={() => this.handleTestApiKeys(false, true)}
+                                                    className="test-btn"
+                                                    disabled={apiKeyLoading}
+                                                >
+                                                    Test
+                                                </button>
+                                                {testResults.unsplash && (
+                                                    <span className={`test-result ${testResults.unsplash.status}`}>
+                                                        {testResults.unsplash.status === 'success' ? <FaCheck /> : <FaTimes />}
+                                                        {testResults.unsplash.message}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {apiKeyError && (
+                                        <div className="alert alert-error">
+                                            <MdWarning className="alert-icon" />
+                                            <span>{apiKeyError}</span>
+                                        </div>
+                                    )}
+
+                                    {apiKeySuccess && (
+                                        <div className="alert alert-success">
+                                            <MdCheckCircle className="alert-icon" />
+                                            <span>{apiKeySuccess}</span>
+                                        </div>
+                                    )}
+
+                                    <form onSubmit={this.handleUpdateApiKeys} className="api-keys-form">
+                                        <div className="form-group">
+                                            <label htmlFor="gemini_api_key">
+                                                Gemini API Key
+                                                <small>Used for AI content generation</small>
+                                            </label>
+                                            <input
+                                                type="password"
+                                                id="gemini_api_key"
+                                                name="gemini_api_key"
+                                                value={apiKeys.gemini_api_key}
+                                                onChange={this.handleApiKeyChange}
+                                                placeholder="Enter new Gemini API key (leave empty to keep current)"
+                                                disabled={apiKeyLoading}
+                                                className="form-control"
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label htmlFor="unsplash_access_key">
+                                                Unsplash Access Key
+                                                <small>Used for fetching presentation images</small>
+                                            </label>
+                                            <input
+                                                type="password"
+                                                id="unsplash_access_key"
+                                                name="unsplash_access_key"
+                                                value={apiKeys.unsplash_access_key}
+                                                onChange={this.handleApiKeyChange}
+                                                placeholder="Enter new Unsplash access key (leave empty to keep current)"
+                                                disabled={apiKeyLoading}
+                                                className="form-control"
+                                            />
+                                        </div>
+
+                                        <div className="form-actions">
+                                            <button
+                                                type="submit"
+                                                disabled={apiKeyLoading || (!apiKeys.gemini_api_key && !apiKeys.unsplash_access_key)}
+                                                className={`btn-primary ${apiKeyLoading ? 'loading' : ''}`}
+                                            >
+                                                {apiKeyLoading ? (
+                                                    <>
+                                                        <span className="spinner"></span>
+                                                        Updating...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <MdSettings />
+                                                        Update API Keys
+                                                    </>
+                                                )}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => this.handleTestApiKeys(true, true)}
+                                                disabled={apiKeyLoading}
+                                                className="btn-secondary"
+                                            >
+                                                Test All Keys
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <div className="api-keys-info">
+                                        <h4>Important Notes:</h4>
+                                        <ul>
+                                            <li>API keys are stored securely in the .env file</li>
+                                            <li>Changes take effect immediately, but a server restart is recommended</li>
+                                            <li>Always test your API keys after updating</li>
+                                            <li>Keep your API keys confidential and never share them</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Notification History Tab */}
                         {activeTab === 'history' && (
                             <div className="notification-history">
                                 <div className="card">
@@ -627,3 +988,4 @@ class AdminPanel extends Component {
 }
 
 export default AdminPanel;
+
