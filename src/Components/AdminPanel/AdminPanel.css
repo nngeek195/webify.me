@@ -20,6 +20,237 @@
     --transition: all 0.3s ease;
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
+/* API Keys Management Styles */
+.api-keys-management {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.current-keys-section {
+    background: rgba(51, 65, 85, 0.5);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.current-keys-section h3 {
+    color: #e2e8f0;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.keys-status {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.key-status-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 8px;
+    border: 1px solid rgba(71, 85, 105, 0.3);
+    flex-wrap: wrap;
+}
+
+.key-label {
+    font-weight: 600;
+    color: #94a3b8;
+    min-width: 150px;
+}
+
+.key-value {
+    font-family: 'Courier New', monospace;
+    background: rgba(15, 23, 42, 0.8);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    color: #e2e8f0;
+    border: 1px solid rgba(71, 85, 105, 0.3);
+    flex: 1;
+    min-width: 200px;
+}
+
+.test-btn {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    min-width: 60px;
+}
+
+.test-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-1px);
+}
+
+.test-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.test-result {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    min-width: 120px;
+}
+
+.test-result.success {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.test-result.error {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.api-keys-form {
+    margin-top: 2rem;
+}
+
+.api-keys-form .form-group label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.api-keys-form .form-group label small {
+    color: #94a3b8;
+    font-weight: 400;
+    font-size: 0.875rem;
+}
+
+.api-keys-form input[type="password"] {
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 2px solid #6366f1;
+    color: #6366f1;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: #4f46e5;
+    color: #4f46e5;
+    transform: translateY(-1px);
+}
+
+.btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.api-keys-info {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px;
+}
+
+.api-keys-info h4 {
+    color: #60a5fa;
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+}
+
+.api-keys-info ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+    color: #cbd5e1;
+}
+
+.api-keys-info li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+/* Responsive adjustments for API keys */
+@media (max-width: 768px) {
+    .key-status-item {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+    
+    .key-label {
+        min-width: auto;
+    }
+    
+    .key-value {
+        min-width: auto;
+        text-align: center;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Loading state for test buttons */
+.test-btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+.test-btn.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
 
 .admin-panel {
     display: flex;
