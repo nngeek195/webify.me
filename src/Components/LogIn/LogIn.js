@@ -92,7 +92,7 @@ class LogIn extends Component {
         } catch (error) {
             console.error('❌ Backend connection failed:', error);
             this.setState({
-                error: 'Cannot connect to backend. Please ensure Ballerina service is running on http://localhost:9090'
+                error: 'Connection Isuue'
             });
         }
     }
@@ -412,3 +412,4 @@ class LogIn extends Component {
 }
 
 export default LogIn
+
