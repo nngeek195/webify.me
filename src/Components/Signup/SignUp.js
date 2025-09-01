@@ -30,7 +30,7 @@ class SignUp extends Component {
         this.setState({ checkingEmail: true, emailError: '' });
 
         try {
-            const response = await fetch(`http://localhost:9090/checkEmail/${encodeURIComponent(email)}`);
+            const response = await fetch(`https://induction-laura-categories-completed.trycloudflare.com/?utm_source=chatgpt.com/checkEmail/${encodeURIComponent(email)}`);
             const data = await response.json();
 
             if (data.success && data.data?.exists) {
@@ -59,7 +59,7 @@ class SignUp extends Component {
         this.setState({ checkingUsername: true, usernameError: '' });
 
         try {
-            const response = await fetch(`http://localhost:9090/checkUsername/${encodeURIComponent(username)}`);
+            const response = await fetch(`https://induction-laura-categories-completed.trycloudflare.com/?utm_source=chatgpt.com/checkUsername/${encodeURIComponent(username)}`);
             const data = await response.json();
 
             if (data.success && data.data?.exists) {
@@ -187,7 +187,7 @@ class SignUp extends Component {
         };
 
         try {
-            const response = await fetch('http://localhost:9090/signup', {
+            const response = await fetch('https://induction-laura-categories-completed.trycloudflare.com/?utm_source=chatgpt.com/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
