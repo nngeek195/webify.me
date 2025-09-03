@@ -1,4 +1,3 @@
-
 from flask import Flask, request, render_template_string, jsonify, send_from_directory, redirect, url_for
 import os
 import requests
@@ -15,14 +14,1028 @@ from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from bson import ObjectId
 from datetime import datetime
-import os
-import shutil
+import logging
+import smtplib
+import ssl
+import uuid
+import hashlib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import re 
+from datetime import datetime, timezone
 
 load_dotenv()
-
-
 app = Flask(__name__)
-CORS(app) 
+CORS(app)
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# MongoDB setup
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+client = MongoClient(MONGO_URI)
+db = client["userDb"]
+
+# Collections
+users_collection = db["users"]
+user_data_collection = db["userData"]
+presentations_collection = db["presentations"]
+trending_collection = db["Trending"]
+admin_collection = db["admin"]
+admin_messages_collection = db["adminMessages"]
+notifications_collection = db["notifications"]
+notification_counter_collection = db["notificationCounter"]
+collaborations_collection = db["CollabarationDb"]
+
+# Email config
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+EMAIL_USERNAME = os.getenv("EMAIL_USERNAME", "webify.me.official@gmail.com")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "ubmy aoez xlew wjcm")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "webify.me.official@gmail.com")
+FROM_NAME = os.getenv("FROM_NAME", "Webify.me")
+
+# Admin credentials (for simplicity, stored here; consider secure storage)
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
+
+# Gemini and Unsplash keys
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+UNSPLASH_ACCESS_KEY = os.getenv("UNSPLASH_ACCESS_KEY", "YOUR_UNSPLASH_ACCESS_KEY_HERE")
+
+# Path to static/images relative to where the script is running
+IMAGES_DIR = os.path.join(os.path.dirname(__file__), "static", "images")
+
+# Make sure the folder exists
+os.makedirs(IMAGES_DIR, exist_ok=True)
+def create_welcome_email_html(username: str, from_name: str) -> str:
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Webify.me!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* General Styles */
+        body {{
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            font-family: 'Poppins', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }}
+        .wrapper {{
+            width: 100%;
+            table-layout: fixed;
+            background-color: #f0f2f5;
+            padding: 40px 0;
+        }}
+        .main {{
+            background-color: #ffffff;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+            border-spacing: 0;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }}
+        td {{
+            padding: 0;
+        }}
+        p {{
+            margin: 0 0 16px 0;
+            line-height: 1.6;
+            color: #555;
+        }}
+        a {{
+            color:#00aeff;
+            text-decoration: none;
+        }}
+        /* Header */
+        .header {{
+            background: linear-gradient(135deg, #00aeff, #81d4fa);
+            color: #ffffff;
+            padding: 40px 30px;
+            text-align: center;
+        }}
+        .header h1 {{
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }}
+        /* Content */
+        .content {{
+            padding: 40px 30px;
+        }}
+        .welcome-text {{
+            font-size: 22px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }}
+        /* Features Section */
+        .features {{
+            background-color: #f8f9fa;
+            border-left: 4px solid  #00aeff;
+            padding: 20px;
+            margin: 30px 0;
+        }}
+        .features h3 {{
+            margin-top: 0;
+            color: #333;
+        }}
+        .features ul {{
+            margin: 0;
+            padding-left: 20px;
+            list-style-type: '⁘  ';
+        }}
+        .features li {{
+            padding-left: 10px;
+            margin-bottom: 10px;
+            color: #555;
+        }}
+        /* Button */
+        .button-wrapper {{
+            text-align: center;
+            margin: 30px 0;
+        }}
+        .button {{
+            background: linear-gradient(135deg,  #00aeff, #81d4fa);
+            color: #ffffff;
+            padding: 15px 35px;
+            border-radius: 50px;
+            font-weight: 600;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(106, 90, 205, 0.4);
+        }}
+        /* Footer */
+        .footer {{
+            background-color: #f0f2f5;
+            text-align: center;
+            padding: 30px;
+            font-size: 12px;
+            color: #888;
+        }}
+        .socials a {{
+            margin: 0 8px;
+            display: inline-block;
+        }}
+        .socials img {{
+            width: 24px;
+            height: 24px;
+        }}
+    </style>
+</head>
+<body>
+    <center class="wrapper">
+        <table class="main" width="100%">
+            <!-- Header -->
+            <tr>
+                <td>
+                    <table class="header" width="100%">
+                        <tr>
+                            <td>
+                                <h1>Welcome to Webify.me!</h1>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <!-- Content -->
+            <tr>
+                <td class="content">
+                    <p class="welcome-text">Hi {username},</p>
+                    <p>We're thrilled to have you on board! Your account has been successfully created, and you're just one step away from bringing your ideas to life.</p>
+                    
+                    <div class="features">
+                        <h3>Here's a glimpse of what you can do:</h3>
+                        <ul>
+                            <li>Build stunning, responsive websites in minutes.</li>
+                            <li>Customize every detail with our intuitive live editor.</li>
+                            <li>Bring your vision to life with AI-powered design.</li>
+                            <li>Download your complete website with a single click.</li>
+                        </ul>
+                    </div>
+                    
+                    <table class="button-wrapper" width="100%">
+                        <tr>
+                            <td>
+                                <a href="https://webifyme.vercel.app/login" target="_blank" class="button">Start Creating Now</a>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <p>If you have any questions or need a hand getting started, don't hesitate to reach out to our support team. We're here to help!</p>
+                    <p>Happy creating,<br>The {from_name} Team</p>
+                </td>
+            </tr>
+            <!-- Footer -->
+            <tr>
+                <td class="footer">
+                    <p>© 2025 Webify.me. All rights reserved.</p>
+                    
+                </td>
+            </tr>
+        </table>
+    </center>
+</body>
+</html>
+"""
+
+def get_collaborated_presentation_ids(user_email):
+    collaborations = collaborations_collection.find({
+        "collaboratorEmails": user_email,
+        "isActive": True
+    }, {"presentationId": 1})
+    return [collab["presentationId"] for collab in collaborations]
+ 
+
+def send_collaboration_invite_email(to_email, owner_email, presentation_id):
+    try:
+        subject = "You've been invited to collaborate on a presentation - Webify.me"
+        from_email = FROM_EMAIL  # Make sure FROM_EMAIL is defined in your config/env
+        from_name = FROM_NAME    # Make sure FROM_NAME is defined in your config/env
+
+        # Construct a link to login/signup and access collaboration
+        collaboration_link = f"https://webify.me/login?collaborationId={presentation_id}"
+
+        html_content = f"""<!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {{ 
+                            font-family: Arial, sans-serif; 
+                            max-width: 600px; 
+                            margin: 0 auto; 
+                            padding: 20px; 
+                            background-color: #f9fafb;
+                            color: #333;
+                        }}
+                        .container {{ 
+                            background: white; 
+                            border-radius: 10px; 
+                            padding: 30px; 
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+                        }}
+                        .header {{ 
+                            text-align: center; 
+                            margin-bottom: 30px; 
+                            color: #667eea; 
+                        }}
+                        .button-container {{
+                            text-align: center; 
+                            margin: 30px 0;
+                        }}
+                        .btn {{
+                            background: #667eea; 
+                            color: white; 
+                            padding: 15px 30px; 
+                            text-decoration: none; 
+                            border-radius: 5px; 
+                            display: inline-block;
+                            font-weight: bold;
+                            font-size: 16px;
+                        }}
+                        .footer {{ 
+                            margin-top: 30px; 
+                            text-align: center; 
+                            color: #666; 
+                            font-size: 14px; 
+                        }}
+                        p {{
+                            line-height: 1.6;
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>Invitation to Collaborate</h1>
+                        </div>
+                        <p>Hello,</p>
+                        <p><strong>{owner_email}</strong> has invited you to collaborate on a presentation in <strong>Webify.me</strong>.</p>
+                        <p>Please click the button below to log in or sign up and access the collaboration.</p>
+                        <div class="button-container">
+                            <a href="{collaboration_link}" class="btn" target="_blank" rel="noopener noreferrer">Access Collaboration</a>
+                        </div>
+                        <p>If the button above does not work, copy and paste the following URL into your browser:</p>
+                        <p><a href="{collaboration_link}" target="_blank" rel="noopener noreferrer">{collaboration_link}</a></p>
+                        <div class="footer">
+                            <p>Thank you,<br/>{from_name} Team</p>
+                            <p style="font-size: 12px; color: #999;">
+                                This email was sent to you because you were invited to collaborate on Webify.me.
+                            </p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+
+
+        message = MIMEMultipart("alternative")
+        message["Subject"] = subject
+        message["From"] = f"{from_name} <{from_email}>"
+        message["To"] = to_email
+        part = MIMEText(html_content, "html")
+        message.attach(part)
+
+        context = ssl.create_default_context()
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls(context=context)
+            server.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+            server.sendmail(from_email, to_email, message.as_string())
+        logger.info(f"Sent collaboration invite email to {to_email}")
+    except Exception as e:
+        logger.error(f"Failed to send collaboration invite email to {to_email}: {e}")
+
+
+def send_email(to_email: str, subject: str, html_content: str) -> bool:
+    try:
+        message = MIMEMultipart("alternative")
+        message["Subject"] = subject
+        message["From"] = f"{FROM_NAME} <{FROM_EMAIL}>"
+        message["To"] = to_email
+
+        part = MIMEText(html_content, "html")
+        message.attach(part)
+
+        context = ssl.create_default_context()
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls(context=context)
+            server.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+            server.sendmail(FROM_EMAIL, to_email, message.as_string())
+        logger.info(f"✅ Email sent to {to_email}")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Failed to send email to {to_email}: {e}")
+        return False
+
+def send_welcome_email(to_email: str, username: str, profile_picture_url: str) -> bool:
+    logger.info(f"📧 Sending welcome email to: {to_email}")
+    html_content = create_welcome_email_html(username, to_email, profile_picture_url)
+    subject = f"🎉 Welcome to {FROM_NAME}!"
+    return send_email(to_email, subject, html_content)
+
+def get_message_type_emoji(message_type: str) -> str:
+    return {
+        "success": "✅",
+        "warning": "⚠️",
+        "error": "❌",
+        "info": "ℹ️"
+    }.get(message_type, "📢")
+
+def create_notification_email_html(username: str, title: str, message: str, message_type: str, to_email: str) -> str:
+    emoji = get_message_type_emoji(message_type)
+    from_name = FROM_NAME
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .container {{ background: white; border-radius: 10px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
+            .header {{ text-align: center; margin-bottom: 30px; color: #667eea; }}
+            .message-type {{ padding: 10px 20px; border-radius: 5px; margin: 20px 0; text-align: center; }}
+            .type-info {{ background: #e3f2fd; color: #1976d2; }}
+            .type-success {{ background: #e8f5e9; color: #388e3c; }}
+            .type-warning {{ background: #fff3e0; color: #f57c00; }}
+            .type-error {{ background: #ffebee; color: #d32f2f; }}
+            .footer {{ margin-top: 30px; text-align: center; color: #666; font-size: 14px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>{title}</h1>
+            </div>
+            <p>Hi <strong>{username}</strong>,</p>
+            <div class="message-type type-{message_type}">
+                <h3>{title}</h3>
+                <p>{message}</p>
+            </div>
+            <p>This is an important notification from {from_name}. Please log in to your account for more details.</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://webifyme.vercel.app/login" style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                    Login to Your Account →
+                </a>
+            </div>
+            <div class="footer">
+                <p>Thank you,<br>{from_name} Team</p>
+                <p style="font-size: 12px; color: #999;">
+                    This email was sent to {to_email}.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+
+def send_notification_email(to_email: str, username: str, title: str, message: str, message_type: str) -> bool:
+    html_content = create_notification_email_html(username, title, message, message_type, to_email)
+    subject = f"{get_message_type_emoji(message_type)} {title} - {FROM_NAME}"
+    return send_email(to_email, subject, html_content)
+
+
+def hash_sha256_base64(text: str) -> str:
+    return hashlib.sha256(text.encode('utf-8')).digest().hex()
+
+def send_email(to_email: str, subject: str, html_content: str) -> bool:
+    try:
+        message = MIMEMultipart("alternative")
+        message["Subject"] = subject
+        message["From"] = f"{FROM_NAME} <{FROM_EMAIL}>"
+        message["To"] = to_email
+
+        part = MIMEText(html_content, "html")
+        message.attach(part)
+
+        context = ssl.create_default_context()
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls(context=context)
+            server.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+            server.sendmail(FROM_EMAIL, to_email, message.as_string())
+        logger.info(f"✅ Email sent to {to_email}")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Failed to send email to {to_email}: {e}")
+        return False
+
+def create_welcome_email_html(username: str, user_email: str, profile_picture_url: str) -> str:
+    # Use your existing HTML template here (omitted for brevity)
+    # For example:
+    return f"""
+    <html>
+    <body>
+    <h1>Welcome to {FROM_NAME}, {username}!</h1>
+    <p>Your account {user_email} has been created.</p>
+    <img src="{profile_picture_url}" alt="Profile Picture" width="100" height="100"/>
+    <p>Start creating amazing presentations!</p>
+    </body>
+    </html>
+    """
+
+def get_message_type_emoji(message_type: str) -> str:
+    return {
+        "success": "✅",
+        "warning": "⚠️",
+        "error": "❌",
+        "info": "ℹ️"
+    }.get(message_type, "📢")
+
+
+def search_unsplash_image(query: str) -> str:
+    if not UNSPLASH_ACCESS_KEY or UNSPLASH_ACCESS_KEY == "YOUR_UNSPLASH_ACCESS_KEY_HERE":
+        return f"https://placehold.co/600x400/1e293b/e2e8f0?text={query.replace(' ', '+')}"
+    url = "https://api.unsplash.com/search/photos"
+    params = {"query": query, "per_page": 1, "orientation": "landscape"}
+    headers = {"Authorization": f"Client-ID {UNSPLASH_ACCESS_KEY}"}
+    try:
+        res = requests.get(url, headers=headers, params=params)
+        res.raise_for_status()
+        data = res.json()
+        return data['results'][0]['urls']['regular'] if data['results'] else None
+    except Exception as e:
+        logger.error(f"Error searching Unsplash: {e}")
+        return None
+
+def download_image(image_url: str, filename: str) -> str:
+    try:
+        filepath = os.path.join(IMAGES_DIR, filename)
+        r = requests.get(image_url, stream=True)
+        r.raise_for_status()
+        with open(filepath, 'wb') as f:
+            for chunk in r.iter_content(1024):
+                f.write(chunk)
+        return f"/static/images/{filename}"
+    except Exception as e:
+        logger.error(f"Error downloading image {image_url}: {e}")
+        return None
+
+def api_call_with_backoff(url, headers, payload, max_retries=5, initial_delay=1):
+    for i in range(max_retries):
+        try:
+            response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=180)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"API call failed (retry {i+1}/{max_retries}): {e}")
+            if i == max_retries - 1:
+                raise
+            time.sleep(initial_delay * (2 ** i))
+
+# Routes from Ballerina backend converted to Flask
+
+
+
+
+@app.route('/collaborations/add', methods=['POST'])
+def add_collaboration():
+    data = request.get_json()
+    logger.info(f"Received collaboration add request: {data}")
+
+    presentation_id = data.get('presentationId')
+    owner_email = data.get('ownerEmail')
+    collaborator_emails = data.get('collaboratorEmails', [])
+
+    if not presentation_id or not owner_email or not collaborator_emails:
+        logger.warning("Missing required fields in collaboration add request")
+        return jsonify({"success": False, "message": "Missing required fields"}), 400
+
+    for email in collaborator_emails:
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            logger.warning(f"Invalid email detected: {email}")
+            return jsonify({"success": False, "message": f"Invalid email: {email}"}), 400
+
+    collab_doc = {
+        "presentationId": presentation_id,
+        "ownerEmail": owner_email,
+        "collaboratorEmails": collaborator_emails,
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "isActive": True,
+        "label": "collaborate presentation"
+    }
+
+    try:
+        result = collaborations_collection.insert_one(collab_doc)
+        logger.info(f"Inserted collaboration with id: {result.inserted_id}")
+        if not result.acknowledged:
+            logger.error("Insert not acknowledged by MongoDB")
+            return jsonify({"success": False, "message": "Failed to save collaboration"}), 500
+    except Exception as e:
+        logger.error(f"DB error inserting collaboration: {e}")
+        return jsonify({"success": False, "message": f"DB error: {str(e)}"}), 500
+
+    for email in collaborator_emails:
+        try:
+            send_collaboration_invite_email(email, owner_email, presentation_id)
+        except Exception as e:
+            logger.error(f"Failed to send invite email to {email}: {e}")
+
+    return jsonify({"success": True, "message": "Collaboration saved and invitations sent."})
+
+@app.route('/users', methods=['GET'])
+def get_users():
+    try:
+        users_cursor = users_collection.find({}, {"_id": 0, "email": 1, "username": 1, "createdAt": 1, "lastLogin": 1})
+        users = list(users_cursor)
+        return jsonify({"success": True, "data": users})
+    except Exception as e:
+        logger.error(f"Error fetching users: {e}")
+        return jsonify({"success": False, "message": "Failed to fetch users"}), 500
+@app.route('/users/active_count', methods=['GET'])
+def get_active_users_count():
+    try:
+        # Define "active" as users who logged in within last 30 days
+        threshold_date = datetime.utcnow() - timedelta(days=30)
+        active_count = users_collection.count_documents({
+            "lastLogin": {"$gte": threshold_date.isoformat()}
+        })
+        return jsonify({"success": True, "data": {"activeUsers": active_count}})
+    except Exception as e:
+        logger.error(f"Error fetching active users count: {e}")
+        return jsonify({"success": False, "message": "Failed to fetch active users count"}), 500
+def get_notifications_stats():
+    try:
+        total_notifications = notifications_collection.count_documents({})
+        # For unread, you need user context; here we return total only
+        # If you want unread per user, pass user email as query param and filter accordingly
+        return jsonify({
+            "success": True,
+            "data": {
+                "totalNotifications": total_notifications,
+                # "unreadNotifications": unread_count  # implement if you track per user
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error fetching notifications stats: {e}")
+        return jsonify({"success": False, "message": "Failed to fetch notifications stats"}), 500
+@app.route('/admin/notifications', methods=['GET'])
+def get_all_notifications():
+    try:
+        notifications_cursor = notifications_collection.find({}).sort("createdAt", -1)
+        notifications = []
+        for doc in notifications_cursor:
+            notifications.append({
+                "title": doc.get("title", ""),
+                "message": doc.get("message", ""),
+                "type": doc.get("type", "info"),
+                "priority": doc.get("priority", 2),
+                "createdAt": doc.get("createdAt", ""),
+                "isActive": doc.get("isActive", True)
+            })
+        total_notifications = len(notifications)
+        # You can calculate unread count if you track read status per user
+
+        return jsonify({
+            "success": True,
+            "data": notifications,
+            "stats": {
+                "totalNotifications": total_notifications,
+                # "unreadNotifications": unread_count
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error fetching notifications: {e}")
+        return jsonify({"success": False, "message": "Failed to fetch notifications"}), 500
+    
+@app.route('/admin/login', methods=['POST'])
+def admin_login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    if not username or not password:
+        return jsonify({"success": False, "message": "Username and password required"}), 400
+
+    admin_user = admin_collection.find_one({"username": username})
+    if admin_user and admin_user.get("Password") == password:
+        logger.info(f"✅ Admin login successful for: {username}")
+        return jsonify({"success": True, "message": "Admin login successful"})
+    else:
+        logger.warning(f"Admin login failed for: {username}")
+        return jsonify({"success": False, "message": "Invalid username or password"}), 401
+
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.get_json()
+    email = data.get('email', '').strip()
+    username = data.get('username', '').strip()
+    password = data.get('password', '').strip()
+
+    logger.info(f"=== REGULAR SIGNUP REQUEST === Email: {email}, Username: {username}")
+
+    if not email or not username or not password:
+        return jsonify({"success": False, "message": "All fields are required"}), 400
+    if len(password) < 6:
+        return jsonify({"success": False, "message": "Password must be at least 6 characters long"}), 400
+
+    if users_collection.count_documents({"email": email}) > 0:
+        return jsonify({"success": False, "message": "Email already exists"}), 400
+    if users_collection.count_documents({"username": username}) > 0:
+        return jsonify({"success": False, "message": "Username already exists"}), 400
+
+    hashed_password = hashlib.sha256(password.encode('utf-8')).digest()
+    hashed_password_str = hashed_password.hex()
+    current_time = datetime.utcnow().isoformat()
+
+    email_hash = hashlib.sha256(email.encode('utf-8')).hexdigest()
+    picture_id = email_hash[:8]
+    profile_picture_url = f"https://picsum.photos/300/300?random={picture_id}"
+
+    new_user_doc = {
+        "email": email,
+        "username": username,
+        "password": hashed_password_str,
+        "createdAt": current_time,
+        "picture": profile_picture_url,
+        "pictureId": picture_id,
+        "emailVerified": False
+    }
+    new_user_data_doc = {
+        "email": email,
+        "username": username,
+        "picture": profile_picture_url,
+        "pictureId": picture_id
+    }
+
+    try:
+        users_collection.insert_one(new_user_doc)
+        user_data_collection.insert_one(new_user_data_doc)
+    except Exception as e:
+        logger.error(f"Failed to create user or user data: {e}")
+        # Rollback user if userData insert fails
+        users_collection.delete_one({"email": email})
+        return jsonify({"success": False, "message": "Failed to create user"}), 500
+    send_welcome_email(email, username, profile_picture_url)
+
+    # Send welcome email asynchronously if possible; here synchronous for simplicity
+    email_html = create_welcome_email_html(username, email, profile_picture_url)
+    if not send_email(email, f"🎉 Welcome to {FROM_NAME}!", email_html):
+        logger.warning("Failed to send welcome email, but user created successfully")
+
+    logger.info(f"✅ User registered successfully: {username}")
+    return jsonify({
+        "success": True,
+        "message": "User  registered successfully! Check your email for welcome message.",
+        "data": {
+            "email": email,
+            "username": username,
+            "picture": profile_picture_url,
+            "pictureId": picture_id
+        }
+    })
+
+@app.route('/checkUsername/<username>', methods=['GET'])
+def check_username(username):
+    count = users_collection.count_documents({"username": username})
+    return jsonify({
+        "success": True,
+        "message": "Username exists" if count > 0 else "Username available",
+        "data": {"exists": count > 0}
+    })
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email', '').strip()
+    password = data.get('password', '').strip()
+
+    logger.info(f"=== LOGIN REQUEST === Email: {email}")
+
+    if not email or not password:
+        return jsonify({"success": False, "message": "Email and password are required"}), 400
+
+    user = users_collection.find_one({"email": email})
+    if not user:
+        logger.warning(f"Login failed: User not found - {email}")
+        return jsonify({"success": False, "message": "Invalid email or password"}), 401
+
+    hashed_password = hashlib.sha256(password.encode('utf-8')).digest()
+    hashed_password_str = hashed_password.hex()
+
+    if user.get("password") == hashed_password_str:
+        logger.info(f"✅ Login successful for user: {email}")
+        current_time = datetime.utcnow().isoformat()
+        users_collection.update_one({"email": email}, {"$set": {"lastLogin": current_time}})
+
+        user_data = user_data_collection.find_one({"email": email}) or {}
+        profile_data = {
+            "picture": user_data.get("picture"),
+            "bio": user_data.get("bio"),
+            "location": user_data.get("location"),
+            "phoneNumber": user_data.get("phoneNumber")
+        }
+
+        return jsonify({
+            "success": True,
+            "message": "Login successful",
+            "data": {
+                "email": email,
+                "username": user.get("username"),
+                "loginTime": current_time,
+                "profile": profile_data
+            }
+        })
+    else:
+        logger.warning(f"Login failed: Invalid password for user - {email}")
+        return jsonify({"success": False, "message": "Invalid email or password"}), 401
+
+# Helper function to send notification emails to all users
+def send_notification_to_all_users(title, message, message_type):
+    all_users = list(users_collection.find({}))
+    current_time = datetime.utcnow().isoformat()
+    success_count = 0
+    error_count = 0
+
+    for user in all_users:
+        to_email = user.get("email")
+        username = user.get("username")
+        if send_notification_email(to_email, username, title, message, message_type):
+            success_count += 1
+            # Update notification counter
+            counter = notification_counter_collection.find_one({"userEmail": to_email})
+            if counter:
+                notification_counter_collection.update_one(
+                    {"userEmail": to_email},
+                    {"$inc": {"emailCount": 1}, "$set": {"lastEmailSent": current_time}}
+                )
+            else:
+                notification_counter_collection.insert_one({
+                    "userEmail": to_email,
+                    "emailCount": 1,
+                    "lastEmailSent": current_time
+                })
+        else:
+            error_count += 1
+
+    return success_count, error_count, len(all_users)
+
+
+# Admin message creation and notify all users
+@app.route('/admin/messages', methods=['POST'])
+def create_admin_message():
+    data = request.get_json()
+    title = data.get('title')
+    message = data.get('message')
+    message_type = data.get('messageType')
+    priority = data.get('priority')
+    admin_email = data.get('adminEmail')
+
+    logger.info(f"=== CREATE ADMIN MESSAGE REQUEST === Title: {title}")
+
+    if not all([title, message, message_type, priority, admin_email]):
+        return jsonify({"success": False, "message": "Missing required fields"}), 400
+
+    current_time = datetime.utcnow().isoformat()
+    message_id = str(uuid.uuid4())
+
+    new_message_doc = {
+        "messageId": message_id,
+        "title": title,
+        "message": message,
+        "messageType": message_type,
+        "createdAt": current_time,
+        "createdBy": admin_email,
+        "isActive": True,
+        "priority": priority,
+        "readByUsers": []
+    }
+
+    try:
+        admin_messages_collection.insert_one(new_message_doc)
+        logger.info(f"✅ Admin message created successfully with ID: {message_id}")
+
+        # Optionally send notification emails to all users here or via separate endpoint
+
+        return jsonify({"success": True, "message": "Message sent to all users successfully!", "data": {"messageId": message_id}})
+    except Exception as e:
+        logger.error(f"Failed to create admin message: {e}")
+        return jsonify({"success": False, "message": "Failed to create message"}), 500
+
+
+# Optional: Keep /admin/sendEmailNotification route if you want to send emails without creating a message
+@app.route('/admin/sendEmailNotification', methods=['POST'])
+def send_email_notification():
+    data = request.get_json()
+    title = data.get('title')
+    message = data.get('message')
+    message_type = data.get('messageType')
+    priority = data.get('priority')
+    admin_email = data.get('adminEmail')
+
+    logger.info(f"=== SEND EMAIL NOTIFICATION TO ALL USERS === Title: {title}, Admin: {admin_email}")
+
+    if not all([title, message, message_type, priority, admin_email]):
+        return jsonify({"success": False, "message": "Missing required fields"}), 400
+
+    success_count, error_count, total_users = send_notification_to_all_users(title, message, message_type)
+    logger.info(f"📧 Email notification completed. Success: {success_count}, Errors: {error_count}")
+
+    return jsonify({
+        "success": True,
+        "message": f"Email notification sent to {success_count} users successfully!",
+        "data": {
+            "totalUsers": total_users,
+            "successCount": success_count,
+            "errorCount": error_count
+        }
+    })
+
+# Notification count retrieval
+@app.route('/notifications/count/<user_email>', methods=['GET'])
+def get_notification_count(user_email):
+    logger.info(f"=== GET NOTIFICATION COUNT === User: {user_email}")
+    counter = notification_counter_collection.find_one({"userEmail": user_email})
+    email_count = counter.get("emailCount", 0) if counter else 0
+    last_email_sent = counter.get("lastEmailSent", "") if counter else ""
+    return jsonify({
+        "success": True,
+        "message": "Notification count retrieved",
+        "data": {
+            "emailCount": email_count,
+            "lastEmailSent": last_email_sent
+        }
+    })
+
+# Reset notification count
+@app.route('/notifications/reset', methods=['POST'])
+def reset_notification_count():
+    data = request.get_json()
+    user_email = data.get('userEmail')
+    logger.info(f"=== RESET NOTIFICATION COUNT === User: {user_email}")
+    if not user_email:
+        return jsonify({"success": False, "message": "userEmail is required"}), 400
+    result = notification_counter_collection.update_one({"userEmail": user_email}, {"$set": {"emailCount": 0}})
+    if result.modified_count > 0:
+        logger.info("✅ Notification count reset successfully")
+        return jsonify({"success": True, "message": "Notification count reset successfully"})
+    else:
+        return jsonify({"success": False, "message": "Notification count reset failed or no changes made"}), 400
+
+# Profile picture update
+@app.route('/updateProfilePicture', methods=['PUT'])
+def update_profile_picture():
+    data = request.get_json()
+    email = data.get('email')
+    picture_url = data.get('pictureUrl')
+    unsplash_image_id = data.get('unsplashImageId')
+
+    logger.info(f"Profile picture update request for: {email}")
+
+    if not email:
+        return jsonify({"success": False, "message": "Email is required"}), 400
+
+    if users_collection.count_documents({"email": email}) == 0:
+        return jsonify({"success": False, "message": "User  not found"}), 404
+
+    update_fields = {}
+    if picture_url:
+        update_fields["picture"] = picture_url
+    if unsplash_image_id:
+        update_fields["unsplashImageId"] = unsplash_image_id
+
+    if not update_fields:
+        return jsonify({"success": False, "message": "No update fields provided"}), 400
+
+    try:
+        users_collection.update_one({"email": email}, {"$set": update_fields})
+        user_data_collection.update_one({"email": email}, {"$set": update_fields})
+        logger.info(f"✅ Profile picture updated successfully for: {email}")
+        return jsonify({"success": True, "message": "Profile picture updated successfully"})
+    except Exception as e:
+        logger.error(f"Failed to update profile picture: {e}")
+        return jsonify({"success": False, "message": "Failed to update profile picture"}), 500
+
+# User profile retrieval
+@app.route('/userProfile/<email>', methods=['GET'])
+def get_user_profile(email):
+    logger.info(f"=== GET USER PROFILE REQUEST === Email: {email}")
+    user_data = user_data_collection.find_one({"email": email})
+    if not user_data:
+        logger.warning(f"User  profile not found: {email}")
+        return jsonify({"success": False, "message": "User  profile not found"}), 404
+    return jsonify({
+        "success": True,
+        "message": "User  profile retrieved successfully",
+        "data": {
+            "email": user_data.get("email"),
+            "username": user_data.get("username"),
+            "picture": user_data.get("picture"),
+            "bio": user_data.get("bio"),
+            "location": user_data.get("location"),
+            "phoneNumber": user_data.get("phoneNumber")
+        }
+    })
+
+# User profile update
+@app.route('/updateUser Profile', methods=['PUT'])
+def update_user_profile():
+    data = request.get_json()
+    email = data.get('email')
+    if not email:
+        return jsonify({"success": False, "message": "Email is required"}), 400
+
+    user_data = user_data_collection.find_one({"email": email})
+    if not user_data:
+        return jsonify({"success": False, "message": "User  profile not found"}), 404
+
+    update_fields = {}
+    for field in ['bio', 'location', 'phoneNumber', 'picture']:
+        if field in data:
+            update_fields[field] = data[field]
+
+    if not update_fields:
+        return jsonify({"success": False, "message": "No fields to update"}), 400
+
+    try:
+        user_data_collection.update_one({"email": email}, {"$set": update_fields})
+        logger.info(f"✅ User profile updated successfully for: {email}")
+        return jsonify({"success": True, "message": "User  profile updated successfully"})
+    except Exception as e:
+        logger.error(f"Failed to update user profile: {e}")
+        return jsonify({"success": False, "message": "Failed to update user profile"}), 500
+
+# Delete user and user profile
+@app.route('/user/<email>', methods=['DELETE'])
+def delete_user(email):
+    logger.info(f"Delete user request for: {email}")
+    result = users_collection.delete_one({"email": email})
+    if result.deleted_count > 0:
+        logger.info(f"✅ User deleted successfully: {email}")
+        return jsonify({"success": True, "message": "User  deleted successfully"})
+    else:
+        logger.warning(f"User  not found for deletion: {email}")
+        return jsonify({"success": False, "message": "User  not found"}), 404
+
+@app.route('/userProfile/<email>', methods=['DELETE'])
+def delete_user_profile(email):
+    logger.info(f"Delete user profile request for: {email}")
+    result = user_data_collection.delete_one({"email": email})
+    if result.deleted_count > 0:
+        logger.info(f"✅ User profile deleted successfully: {email}")
+        return jsonify({"success": True, "message": "User  profile deleted successfully"})
+    else:
+        logger.warning(f"User  profile not found for deletion: {email}")
+        return jsonify({"success": False, "message": "User  profile not found"}), 404
+
+# Check if user profile exists
+@app.route('/checkUser Profile/<email>', methods=['GET'])
+def check_user_profile(email):
+    count = user_data_collection.count_documents({"email": email})
+    return jsonify({
+        "success": True,
+        "message": "User  profile exists" if count > 0 else "User  profile not found",
+        "data": {"exists": count > 0, "email": email}
+    })
+
+
 
 
 IMAGES_DIR = "static/images"
@@ -113,158 +1126,6 @@ def get_trending_presentations():
             "success": False,
             "message": f"Failed to fetch trending presentations: {str(e)}",
             "data": None
-        }), 500
-
-
-
-
-
-# Add these imports at the top if not already present
-import shutil
-import os
-
-# Add these routes after your existing routes
-@app.route('/admin/api-keys', methods=['GET'])
-def get_api_keys():
-    """Get current API keys (masked for security)"""
-    try:
-        return jsonify({
-            "success": True,
-            "data": {
-                "gemini_api_key": GEMINI_API_KEY[:10] + "..." + GEMINI_API_KEY[-4:] if GEMINI_API_KEY else "Not set",
-                "unsplash_access_key": UNSPLASH_ACCESS_KEY[:10] + "..." + UNSPLASH_ACCESS_KEY[-4:] if UNSPLASH_ACCESS_KEY else "Not set"
-            }
-        })
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": f"Error fetching API keys: {str(e)}"
-        }), 500
-
-@app.route('/admin/api-keys', methods=['POST'])
-def update_api_keys():
-    """Update API keys in .env file"""
-    try:
-        data = request.get_json()
-        gemini_key = data.get('gemini_api_key', '').strip()
-        unsplash_key = data.get('unsplash_access_key', '').strip()
-        
-        if not gemini_key and not unsplash_key:
-            return jsonify({
-                "success": False,
-                "message": "At least one API key must be provided"
-            }), 400
-        
-        # Read current .env file
-        env_path = '.env'
-        env_lines = []
-        
-        if os.path.exists(env_path):
-            with open(env_path, 'r') as f:
-                env_lines = f.readlines()
-        
-        # Create backup
-        if os.path.exists(env_path):
-            shutil.copy(env_path, f'{env_path}.backup')
-        
-        # Update or add keys
-        updated_lines = []
-        gemini_updated = False
-        unsplash_updated = False
-        
-        for line in env_lines:
-            if line.startswith('GEMINI_API_KEY=') and gemini_key:
-                updated_lines.append(f'GEMINI_API_KEY={gemini_key}\n')
-                gemini_updated = True
-            elif line.startswith('UNSPLASH_ACCESS_KEY') and unsplash_key:
-                updated_lines.append(f'UNSPLASH_ACCESS_KEY={unsplash_key}\n')
-                unsplash_updated = True
-            else:
-                updated_lines.append(line)
-        
-        # Add new keys if they weren't found in existing file
-        if gemini_key and not gemini_updated:
-            updated_lines.append(f'GEMINI_API_KEY={gemini_key}\n')
-        if unsplash_key and not unsplash_updated:
-            updated_lines.append(f'UNSPLASH_ACCESS_KEY={unsplash_key}\n')
-        
-        # Write updated .env file
-        with open(env_path, 'w') as f:
-            f.writelines(updated_lines)
-        
-        # Update global variables
-        global GEMINI_API_KEY, UNSPLASH_ACCESS_KEY
-        if gemini_key:
-            GEMINI_API_KEY = gemini_key
-        if unsplash_key:
-            UNSPLASH_ACCESS_KEY = unsplash_key
-        
-        return jsonify({
-            "success": True,
-            "message": "API keys updated successfully! Changes will take full effect after server restart.",
-            "data": {
-                "gemini_updated": bool(gemini_key),
-                "unsplash_updated": bool(unsplash_key)
-            }
-        })
-        
-    except Exception as e:
-        print(f"Error updating API keys: {e}")
-        return jsonify({
-            "success": False,
-            "message": f"Failed to update API keys: {str(e)}"
-        }), 500
-
-@app.route('/admin/test-api-keys', methods=['POST'])
-def test_api_keys():
-    """Test if API keys are working"""
-    try:
-        data = request.get_json()
-        test_gemini = data.get('test_gemini', False)
-        test_unsplash = data.get('test_unsplash', False)
-        
-        results = {}
-        
-        if test_gemini:
-            try:
-                # Test Gemini API
-                api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GEMINI_API_KEY}"
-                payload = {
-                    "contents": [{"parts": [{"text": "Say 'API test successful'"}]}],
-                    "generationConfig": {"temperature": 0.1}
-                }
-                response = requests.post(api_url, headers={'Content-Type': 'application/json'}, 
-                                       data=json.dumps(payload), timeout=10)
-                if response.ok:
-                    results['gemini'] = {'status': 'success', 'message': 'Gemini API is working'}
-                else:
-                    results['gemini'] = {'status': 'error', 'message': f'Gemini API error: {response.status_code}'}
-            except Exception as e:
-                results['gemini'] = {'status': 'error', 'message': f'Gemini API test failed: {str(e)}'}
-        
-        if test_unsplash:
-            try:
-                # Test Unsplash API
-                url = "https://api.unsplash.com/search/photos"
-                params = {"query": "test", "per_page": 1}
-                headers = {"Authorization": f"Client-ID {UNSPLASH_ACCESS_KEY}"}
-                response = requests.get(url, headers=headers, params=params, timeout=10)
-                if response.ok:
-                    results['unsplash'] = {'status': 'success', 'message': 'Unsplash API is working'}
-                else:
-                    results['unsplash'] = {'status': 'error', 'message': f'Unsplash API error: {response.status_code}'}
-            except Exception as e:
-                results['unsplash'] = {'status': 'error', 'message': f'Unsplash API test failed: {str(e)}'}
-        
-        return jsonify({
-            "success": True,
-            "data": results
-        })
-        
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": f"Error testing API keys: {str(e)}"
         }), 500
 
 
@@ -2457,24 +3318,45 @@ def update_presentation(presentation_id):
 
 @app.route('/presentations/<email>')
 def get_user_presentations(email):
-    """
-    Fetches all active presentations for a given user email.
-    This is the primary endpoint for the React frontend to get the presentation list.
-    """
     try:
         email = unquote(email)
-       
-        presentations = list(presentations_collection.find(
-            {'email': email, 'isActive': True},
-            {'_id': 1, 'presentationName': 1, 'createdAt': 1, 'previewImageUrl': 1, 'code': 1} 
-        ).sort('createdAt', -1))
         
-        for p in presentations:
+        # Get presentations owned by user
+        owned_presentations = list(presentations_collection.find(
+            {'email': email, 'isActive': True},
+            {'_id': 1, 'presentationName': 1, 'createdAt': 1, 'previewImageUrl': 1, 'code': 1}
+        ))
+        
+        # Get presentations shared with user
+        collaborated_ids = get_collaborated_presentation_ids(email)
+        collaborated_object_ids = []
+        for pid in collaborated_ids:
+            try:
+                collaborated_object_ids.append(ObjectId(pid))
+            except Exception:
+                pass  # skip invalid ids
+        
+        collaborated_presentations = []
+        if collaborated_object_ids:
+            collaborated_presentations = list(presentations_collection.find(
+                {'_id': {'$in': collaborated_object_ids}, 'isActive': True},
+                {'_id': 1, 'presentationName': 1, 'createdAt': 1, 'previewImageUrl': 1, 'code': 1}
+            ))
+        
+        # Combine and remove duplicates if any
+        all_presentations = {str(p['_id']): p for p in owned_presentations}
+        for p in collaborated_presentations:
+            all_presentations[str(p['_id'])] = p
+        
+        # Convert _id to string for JSON serialization
+        presentations_list = []
+        for p in all_presentations.values():
             p['_id'] = str(p['_id'])
-            
-        return jsonify({'success': True, 'presentations': presentations})
+            presentations_list.append(p)
+        
+        return jsonify({'success': True, 'presentations': presentations_list})
     except Exception as e:
-        print(f"Error fetching presentations for {email}: {e}")
+        logger.error(f"Error fetching presentations for {email}: {e}")
         return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
 
 @app.route('/presentations/view/<presentation_id>')
