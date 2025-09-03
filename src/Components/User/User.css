@@ -94,6 +94,112 @@
     animation: backgroundFloat 20s ease-in-out infinite;
 }
 
+/* Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Modal box */
+.modal-content {
+    background: #fff;
+    padding: 24px;
+    width: 400px;
+    max-width: 90%;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease-in-out;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Textarea */
+.modal-content textarea {
+    margin: 12px 0;
+    padding: 12px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.modal-content textarea:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+/* Buttons */
+.modal-content button {
+    margin-top: 12px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s;
+}
+
+.modal-content button:first-of-type {
+    background: #4f46e5;
+    color: white;
+    margin-right: 10px;
+}
+
+.modal-content button:first-of-type:hover {
+    background: #4338ca;
+    transform: scale(1.03);
+}
+
+.modal-content button:last-of-type {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.modal-content button:last-of-type:hover {
+    background: #d1d5db;
+    transform: scale(1.03);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
 @keyframes backgroundFloat {
 
     0%,
