@@ -55,7 +55,7 @@ class AdminPanel extends Component {
 
     fetchCurrentApiKeys = async () => {
         try {
-            const response = await fetch('https://syndication-pools-burning-totally.trycloudflare.com/admin/api-keys');
+            const response = await fetch('https://worthy-enhancements-pound-around.trycloudflare.com/?utm_source=chatgpt.com/admin/api-keys');
             const data = await response.json();
 
             if (data.success) {
@@ -81,7 +81,7 @@ class AdminPanel extends Component {
         this.setState({ apiKeyLoading: true, apiKeyError: '', apiKeySuccess: '' });
 
         try {
-            const response = await fetch('https://syndication-pools-burning-totally.trycloudflare.com/admin/api-keys', {
+            const response = await fetch('https://worthy-enhancements-pound-around.trycloudflare.com/?utm_source=chatgpt.com/admin/api-keys', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -117,7 +117,7 @@ class AdminPanel extends Component {
         this.setState({ apiKeyLoading: true, testResults: {} });
 
         try {
-            const response = await fetch('https://syndication-pools-burning-totally.trycloudflare.com/admin/test-api-keys', {
+            const response = await fetch('https://worthy-enhancements-pound-around.trycloudflare.com/?utm_source=chatgpt.com/admin/test-api-keys', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -153,7 +153,7 @@ class AdminPanel extends Component {
 
     fetchAllNotifications = async () => {
         try {
-            const response = await fetch('https://induction-laura-categories-completed.trycloudflare.com/admin/notifications');
+            const response = await fetch('https://worthy-enhancements-pound-around.trycloudflare.com/?utm_source=chatgpt.com/admin/notifications');
             const data = await response.json();
 
             if (data.success) {
@@ -172,7 +172,7 @@ class AdminPanel extends Component {
 
     fetchUsers = async () => {
         try {
-            const response = await fetch('https://induction-laura-categories-completed.trycloudflare.com/users');
+            const response = await fetch('https://worthy-enhancements-pound-around.trycloudflare.com/?utm_source=chatgpt.com/users');
             const data = await response.json();
 
             console.log('Fetched users:', data);
@@ -193,16 +193,27 @@ class AdminPanel extends Component {
 
     fetchStats = async () => {
         try {
+            // Fetch active users count
+            const activeUsersRes = await fetch('https://worthy-enhancements-pound-around.trycloudflare.com/?utm_source=chatgpt.com/users/active_count');
+            const activeUsersData = await activeUsersRes.json();
+
+            // Fetch notifications stats
+            const notificationsStatsRes = await fetch('https://worthy-enhancements-pound-around.trycloudflare.com/?utm_source=chatgpt.com/notifications/stats');
+            const notificationsStatsData = await notificationsStatsRes.json();
+
             this.setState({
                 stats: {
                     ...this.state.stats,
-                    totalNotifications: this.state.allNotifications.length
+                    activeUsers: activeUsersData.success ? activeUsersData.data.activeUsers : 0,
+                    totalNotifications: notificationsStatsData.success ? notificationsStatsData.data.totalNotifications : 0,
+                    // unreadNotifications: notificationsStatsData.success ? notificationsStatsData.data.unreadNotifications : 0,
                 }
             });
         } catch (error) {
             console.error('Error fetching stats:', error);
         }
     };
+
 
     handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -234,7 +245,7 @@ class AdminPanel extends Component {
         this.setState({ apiKeyLoading: true, apiKeyError: '', apiKeySuccess: '' });
 
         try {
-            const response = await fetch('https://induction-laura-categories-completed.trycloudflare.com/admin/api-keys', {
+            const response = await fetch('https://worthy-enhancements-pound-around.trycloudflare.com/?utm_source=chatgpt.com/admin/api-keys', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -271,7 +282,7 @@ class AdminPanel extends Component {
         this.setState({ apiKeyLoading: true, testResults: {} });
 
         try {
-            const response = await fetch('https://induction-laura-categories-completed.trycloudflare.com/admin/test-api-keys', {
+            const response = await fetch('https://worthy-enhancements-pound-around.trycloudflare.com/?utm_source=chatgpt.com/admin/test-api-keys', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -315,7 +326,7 @@ class AdminPanel extends Component {
         this.setState({ loading: true, error: '', success: '' });
 
         try {
-            const response = await fetch('https://induction-laura-categories-completed.trycloudflare.com/admin/sendEmailNotification', {
+            const response = await fetch('https://worthy-enhancements-pound-around.trycloudflare.com/?utm_source=chatgpt.com/admin/sendEmailNotification', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
