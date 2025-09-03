@@ -50,7 +50,7 @@ class SimpleAuth {
         }
 
         try {
-            const response = await fetch('https://induction-laura-categories-completed.trycloudflare.com/login', {
+            const response = await fetch('https://worthy-enhancements-pound-around.trycloudflare.com/?utm_source=chatgpt.com/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
