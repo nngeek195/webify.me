@@ -72,9 +72,9 @@ class LogIn extends Component {
         console.log('🧹 Auth data cleared');
     }
 
+    // In testBackendConnection method, improve error message and retry suggestion
     testBackendConnection = async () => {
         try {
-            // Fix: Change HTTPS to HTTP 
             const response = await fetch('https://jose-flux-founded-move.trycloudflare.com/test');
 
             if (!response.ok) {
@@ -90,12 +90,76 @@ class LogIn extends Component {
             }
 
         } catch (error) {
-            console.error('❌ connection failed:', error);
+            console.error('❌ Backend connection failed:', error);
             this.setState({
-                error: 'Error'
+                error: 'Cannot connect to backend. Please check your internet connection or try again later.'
             });
         }
     }
+
+    // In handleSubmit method, improve error handling and messages
+    handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!this.validateForm()) {
+            return;
+        }
+
+        this.setState({ loading: true, error: '' });
+
+        const loginData = {
+            email: this.state.email.trim().toLowerCase(),
+            password: this.state.password
+        };
+
+        console.log('📤 Sending login request for:', loginData.email);
+
+        try {
+            const response = await fetch('https://jose-flux-founded-move.trycloudflare.com/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(loginData)
+            });
+
+            if (!response.ok) {
+                // Handle specific HTTP errors with user-friendly messages
+                if (response.status === 500) {
+                    throw new Error('Server error. Please try again later.');
+                } else if (response.status === 404) {
+                    throw new Error('Login endpoint not found. Please contact support.');
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            }
+
+            const data = await response.json();
+            console.log('📥 Login response:', data);
+            if (data.success) {
+                // ... (rest of success logic unchanged)
+            } else {
+                this.setState({
+                    error: data.message || 'Invalid email or password',
+                    loading: false
+                });
+            }
+        } catch (error) {
+            console.error('❌ Login error:', error);
+
+            let errorMessage = error.message || 'Network error. Please check your connection and try again.';
+
+            if (error.message.includes('Failed to fetch')) {
+                errorMessage = 'Cannot connect to server. Please ensure the backend is running.';
+            }
+
+            this.setState({
+                error: errorMessage,
+                loading: false
+            });
+        }
+    }
+
 
     handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -327,9 +391,10 @@ class LogIn extends Component {
                                     fontSize: '14px',
                                     border: '1px solid #ffcdd2'
                                 }}>
-
+                                    {error}
                                 </div>
                             )}
+
 
                             {loginSuccess && (
                                 <div style={{
