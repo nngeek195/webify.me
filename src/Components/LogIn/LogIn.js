@@ -72,9 +72,9 @@ class LogIn extends Component {
         console.log('🧹 Auth data cleared');
     }
 
-    // In testBackendConnection method, improve error message and retry suggestion
     testBackendConnection = async () => {
         try {
+            // Fix: Change HTTPS to HTTP 
             const response = await fetch('https://jose-flux-founded-move.trycloudflare.com/test');
 
             if (!response.ok) {
@@ -90,76 +90,12 @@ class LogIn extends Component {
             }
 
         } catch (error) {
-            console.error('❌ Backend connection failed:', error);
+            console.error('❌ connection failed:', error);
             this.setState({
-                error: 'Cannot connect to backend. Please check your internet connection or try again later.'
+                error: 'Error'
             });
         }
     }
-
-    // In handleSubmit method, improve error handling and messages
-    handleSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!this.validateForm()) {
-            return;
-        }
-
-        this.setState({ loading: true, error: '' });
-
-        const loginData = {
-            email: this.state.email.trim().toLowerCase(),
-            password: this.state.password
-        };
-
-        console.log('📤 Sending login request for:', loginData.email);
-
-        try {
-            const response = await fetch('https://jose-flux-founded-move.trycloudflare.com/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(loginData)
-            });
-
-            if (!response.ok) {
-                // Handle specific HTTP errors with user-friendly messages
-                if (response.status === 500) {
-                    throw new Error('Server error. Please try again later.');
-                } else if (response.status === 404) {
-                    throw new Error('Login endpoint not found. Please contact support.');
-                } else {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-            }
-
-            const data = await response.json();
-            console.log('📥 Login response:', data);
-            if (data.success) {
-                // ... (rest of success logic unchanged)
-            } else {
-                this.setState({
-                    error: data.message || 'Invalid email or password',
-                    loading: false
-                });
-            }
-        } catch (error) {
-            console.error('❌ Login error:', error);
-
-            let errorMessage = error.message || 'Network error. Please check your connection and try again.';
-
-            if (error.message.includes('Failed to fetch')) {
-                errorMessage = 'Cannot connect to server. Please ensure the backend is running.';
-            }
-
-            this.setState({
-                error: errorMessage,
-                loading: false
-            });
-        }
-    }
-
 
     handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -375,54 +311,43 @@ class LogIn extends Component {
                         </div>
                     </Grid>
                     <Grid className='login_second_grid' item xs={6}>
-                        <div className='login_container' role="main" aria-labelledby="login-heading">
+                        <div className='login_container'>
                             <div className='login_container_topic'>
-                                <h1 id="login-heading" tabIndex={-1}>Login</h1>
+                                <span>Login</span>
                             </div>
 
-                            {error && (
-                                <div
-                                    role="alert"
-                                    aria-live="assertive"
-                                    style={{
-                                        color: '#d32f2f',
-                                        textAlign: 'center',
-                                        marginBottom: '15px',
-                                        padding: '10px',
-                                        backgroundColor: '#ffebee',
-                                        borderRadius: '4px',
-                                        fontSize: '14px',
-                                        border: '1px solid #ffcdd2'
-                                    }}
-                                >
-                                    {error}
-                                </div>
-                            )}
-
                             {loginSuccess && (
-                                <div
-                                    role="status"
-                                    aria-live="polite"
-                                    style={{
-                                        color: '#2e7d32',
-                                        textAlign: 'center',
-                                        marginBottom: '15px',
-                                        padding: '10px',
-                                        backgroundColor: '#e8f5e9',
-                                        borderRadius: '4px',
-                                        fontSize: '14px',
-                                        border: '1px solid #c8e6c9'
-                                    }}
-                                >
+                                <div style={{
+                                    color: '#2e7d32',
+                                    textAlign: 'center',
+                                    marginBottom: '15px',
+                                    padding: '10px',
+                                    backgroundColor: '#e8f5e9',
+                                    borderRadius: '4px',
+                                    fontSize: '14px',
+                                    border: '1px solid #c8e6c9'
+                                }}>
                                     ✅ Login successful! Redirecting...
                                 </div>
                             )}
+                            {error && (
+                                <div style={{
+                                    color: '#d32f2f',
+                                    textAlign: 'center',
+                                    marginBottom: '15px',
+                                    padding: '10px',
+                                    backgroundColor: '#ffebee',
+                                    borderRadius: '4px',
+                                    fontSize: '14px',
+                                    border: '1px solid #ffcdd2'
+                                }}>
 
-                            <form onSubmit={this.handleSubmit} noValidate>
+                                </div>
+                            )}
+
+                            <form onSubmit={this.handleSubmit}>
                                 <div>
-                                    <label htmlFor="email" className="visually-hidden">Email</label>
                                     <input
-                                        id="email"
                                         className='login_input'
                                         type='email'
                                         placeholder='Email'
@@ -432,12 +357,8 @@ class LogIn extends Component {
                                         required
                                         disabled={loading}
                                         autoComplete="email"
-                                        aria-describedby="emailHelp"
-                                    />
-                                    <br />
-                                    <label htmlFor="password" className="visually-hidden">Password</label>
+                                    /><br />
                                     <input
-                                        id="password"
                                         className='login_input'
                                         type='password'
                                         placeholder='Password'
@@ -447,92 +368,41 @@ class LogIn extends Component {
                                         required
                                         disabled={loading}
                                         autoComplete="current-password"
-                                        aria-describedby="passwordHelp"
-                                    />
-                                    <br /><br />
+                                    /><br /><br />
                                 </div>
-
                                 <div className='login_checkbox'>
                                     <input
-                                        id="rememberMe"
                                         type='checkbox'
                                         name='rememberMe'
                                         checked={rememberMe}
                                         onChange={this.handleInputChange}
                                         disabled={loading}
                                     />
-                                    <label htmlFor="rememberMe" style={{ marginLeft: '8px', cursor: loading ? 'not-allowed' : 'pointer' }}>
-                                        Remember Me
-                                    </label>
+                                    Remember Me
                                 </div>
-
                                 <div className='login'>
                                     <button
                                         type='submit'
                                         disabled={loading}
                                         style={{
                                             opacity: loading ? 0.7 : 1,
-                                            cursor: loading ? 'not-allowed' : 'pointer',
-                                            transition: 'background-color 0.3s ease',
-                                            padding: '10px 20px',
-                                            fontWeight: 'bold',
-                                            borderRadius: '4px',
-                                            border: 'none',
-                                            backgroundColor: loading ? '#9e9e9e' : '#1976d2',
-                                            color: '#fff',
+                                            cursor: loading ? 'not-allowed' : 'pointer'
                                         }}
-                                        aria-busy={loading}
                                     >
-                                        {loading ? (
-                                            <>
-                                                <span className="spinner" aria-hidden="true" style={{
-                                                    display: 'inline-block',
-                                                    width: '16px',
-                                                    height: '16px',
-                                                    border: '2px solid #fff',
-                                                    borderTop: '2px solid transparent',
-                                                    borderRadius: '50%',
-                                                    animation: 'spin 1s linear infinite',
-                                                    marginRight: '8px',
-                                                    verticalAlign: 'middle'
-                                                }}></span>
-                                                LOGGING IN...
-                                            </>
-                                        ) : (
-                                            'LOGIN'
-                                        )}
+                                        {loading ? '🔄 LOGGING IN...' : 'LOGIN'}
                                     </button>
                                 </div>
                             </form>
 
-                            <div className='login_or' aria-hidden="true" style={{ display: 'flex', alignItems: 'center', margin: '20px 0' }}>
-                                <hr className='hr1_login' style={{ flex: 1, borderColor: '#ccc' }} />
-                                <span style={{ margin: '0 10px', color: '#666' }}>OR</span>
-                                <hr className='hr2_login' style={{ flex: 1, borderColor: '#ccc' }} />
+                            <div className='login_or'>
+                                <hr className='hr1_login' />
+                                <span>OR</span>
+                                <hr className='hr2_login' />
                             </div>
-
-                            <div className='have_account' style={{ textAlign: 'center' }}>
+                            <div className='have_account'>
                                 <span>Don't have an account? <Link to="/signup">Sign Up</Link></span>
                             </div>
-
-                            {/* Spinner keyframes style */}
-                            <style>
-                                {`
-                                    @keyframes spin {
-                                        0% { transform: rotate(0deg); }
-                                        100% { transform: rotate(360deg); }
-                                    }
-                                    .visually-hidden {
-                                        position: absolute !important;
-                                        height: 1px; width: 1px;
-                                        overflow: hidden;
-                                        clip: rect(1px, 1px, 1px, 1px);
-                                        white-space: nowrap;
-                                    }
-                                `}
-                            </style>
                         </div>
-
                     </Grid>
                 </Grid>
             </div>
@@ -541,3 +411,5 @@ class LogIn extends Component {
 }
 
 export default LogIn
+
+
