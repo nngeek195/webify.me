@@ -217,7 +217,7 @@ export const validateWithServer = async () => {
     }
 
     try {
-        const response = await fetch('https://worthy-enhancements-pound-around.trycloudflare.com/login', {
+        const response = await fetch('https://jose-flux-founded-move.trycloudflare.com/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
