@@ -20,7 +20,7 @@ class ProfilePictureModal extends Component {
 
     fetchPictureOptions = async () => {
         try {
-            const response = await fetch('https://jose-flux-founded-move.trycloudflare.com/profilePictureOptions/6');
+            const response = await fetch('https://pl-intelligent-coastal-gang.trycloudflare.com/profilePictureOptions/6');
             const data = await response.json();
 
             if (data.success && data.data) {
