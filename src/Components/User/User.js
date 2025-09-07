@@ -769,7 +769,7 @@ class User extends Component {
       const parsedAuthData = JSON.parse(authData);
 
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch('https://pl-intelligent-coastal-gang.trycloudflare.com/login', {
+      const response = await fetch('${CONFIG.BASE_URL}/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -799,7 +799,7 @@ class User extends Component {
       return;
     }
     // Fix: Use HTTP instead of HTTPS
-    const flaskUrl = `https://pl-intelligent-coastal-gang.trycloudflare.com/?userEmail=${encodeURIComponent(userEmail)}`;
+    const flaskUrl = `${CONFIG.BASE_URL}/?userEmail=${encodeURIComponent(userEmail)}`;
     window.open(flaskUrl, '_blank');
   };
   submitCollaboration = async () => {
@@ -818,7 +818,7 @@ class User extends Component {
     }
 
     try {
-      const response = await fetch('https://pl-intelligent-coastal-gang.trycloudflare.com/collaborations/add', {
+      const response = await fetch('${CONFIG.BASE_URL}/collaborations/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -844,7 +844,7 @@ class User extends Component {
 
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch(`https://pl-intelligent-coastal-gang.trycloudflare.com/presentations/${encodeURIComponent(userEmail)}`);
+      const response = await fetch(`${CONFIG.BASE_URL}/presentations/${encodeURIComponent(userEmail)}`);
       const data = await response.json();
 
       if (data.success && Array.isArray(data.presentations)) {
@@ -868,7 +868,7 @@ class User extends Component {
   fetchTrendingPresentations = async () => {
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch('https://pl-intelligent-coastal-gang.trycloudflare.com/trending');
+      const response = await fetch('${CONFIG.BASE_URL}/trending');
       const data = await response.json();
       if (data.success) {
         const trendingPresentations = data.data.presentations.map(p => ({
@@ -895,7 +895,7 @@ class User extends Component {
     if (!userEmail) return;
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch(`https://pl-intelligent-coastal-gang.trycloudflare.com/notifications/${encodeURIComponent(userEmail)}`);
+      const response = await fetch(`${CONFIG.BASE_URL}/notifications/${encodeURIComponent(userEmail)}`);
       const data = await response.json();
       if (data.success && data.data) {
         this.setState({
@@ -913,7 +913,7 @@ class User extends Component {
     if (!userEmail) return;
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch(`https://pl-intelligent-coastal-gang.trycloudflare.com/notifications/count/${encodeURIComponent(userEmail)}`);
+      const response = await fetch(`${CONFIG.BASE_URL}/notifications/count/${encodeURIComponent(userEmail)}`);
       const data = await response.json();
       if (data.success && data.data) {
         this.setState({ notificationCount: data.data.emailCount || 0 });
@@ -926,7 +926,7 @@ class User extends Component {
   resetNotificationCount = async () => {
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch('https://pl-intelligent-coastal-gang.trycloudflare.com/notifications/reset', {
+      const response = await fetch('${CONFIG.BASE_URL}/notifications/reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userEmail: this.state.userEmail })
@@ -943,14 +943,14 @@ class User extends Component {
   previewPresentation = (presentationId) => {
     console.log('Preview clicked for:', presentationId);
     // Fix: Use HTTP instead of HTTPS
-    const previewUrl = `https://pl-intelligent-coastal-gang.trycloudflare.com/presentations/view/${presentationId}`;
+    const previewUrl = `${CONFIG.BASE_URL}/presentations/view/${presentationId}`;
     window.open(previewUrl, '_blank');
   };
 
   editPresentation = (presentationId) => {
     console.log('Edit clicked for:', presentationId);
     // Fix: Use HTTP instead of HTTPS
-    const editUrl = `https://pl-intelligent-coastal-gang.trycloudflare.com/present/${presentationId}`;
+    const editUrl = `${CONFIG.BASE_URL}/present/${presentationId}`;
     window.open(editUrl, '_blank');
   };
 
@@ -961,7 +961,7 @@ class User extends Component {
     }
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch(`https://pl-intelligent-coastal-gang.trycloudflare.com/presentations/delete/${presentationId}`, {
+      const response = await fetch(`${CONFIG.BASE_URL}/presentations/delete/${presentationId}`, {
         method: 'DELETE'
       });
       const data = await response.json();
@@ -981,14 +981,14 @@ class User extends Component {
 
   viewTrendingPresentation = (presentationId) => {
     // Fix: Use HTTP instead of HTTPS
-    const previewUrl = `https://pl-intelligent-coastal-gang.trycloudflare.com/trending/view/${presentationId}`;
+    const previewUrl = `${CONFIG.BASE_URL}/trending/view/${presentationId}`;
     window.open(previewUrl, '_blank');
   };
 
   assignRandomProfilePicture = async () => {
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch('https://pl-intelligent-coastal-gang.trycloudflare.com/randomProfilePicture');
+      const response = await fetch('${CONFIG.BASE_URL}/randomProfilePicture');
       const data = await response.json();
       if (data.success && data.data) {
         const pictureUrl = data.data.url;
@@ -1003,7 +1003,7 @@ class User extends Component {
   updateProfilePicture = async (pictureUrl, unsplashImageId) => {
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch('https://pl-intelligent-coastal-gang.trycloudflare.com/updateProfilePicture', {
+      const response = await fetch('${CONFIG.BASE_URL}/updateProfilePicture', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1032,7 +1032,7 @@ class User extends Component {
     try {
       const userEmail = this.state.userEmail;
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch('https://pl-intelligent-coastal-gang.trycloudflare.com/messages/markRead', {
+      const response = await fetch('${CONFIG.BASE_URL}/messages/markRead', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
