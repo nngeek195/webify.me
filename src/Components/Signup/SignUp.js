@@ -3,7 +3,7 @@ import './SignUp.css'
 import Grid from '@mui/material/Grid';
 import { Link } from 'react-router-dom'
 import SlideShow from '../SlideShow/SlideShow';
-import CONFIG from '../config';
+
 class SignUp extends Component {
     constructor(props) {
         super(props);
@@ -30,7 +30,7 @@ class SignUp extends Component {
         this.setState({ checkingEmail: true, emailError: '' });
 
         try {
-            const response = await fetch(`${CONFIG.BASE_URL}/checkEmail/${encodeURIComponent(email)}`);
+            const response = await fetch(`https://accomplish-sullivan-pt-sally.trycloudflare.com/checkEmail/${encodeURIComponent(email)}`);
             const data = await response.json();
 
             if (data.success && data.data?.exists) {
@@ -59,7 +59,7 @@ class SignUp extends Component {
         this.setState({ checkingUsername: true, usernameError: '' });
 
         try {
-            const response = await fetch(`${CONFIG.BASE_URL}/checkUsername/${encodeURIComponent(username)}`);
+            const response = await fetch(`https://accomplish-sullivan-pt-sally.trycloudflare.com/checkUsername/${encodeURIComponent(username)}`);
             const data = await response.json();
 
             if (data.success && data.data?.exists) {
@@ -187,7 +187,7 @@ class SignUp extends Component {
         };
 
         try {
-            const response = await fetch('${CONFIG.BASE_URL}/signup', {
+            const response = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
