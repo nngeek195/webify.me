@@ -4,7 +4,6 @@ import Grid from '@mui/material/Grid';
 import { Link, Navigate } from 'react-router-dom'
 import SlideShow_2 from '../SlideShow/SlideShow_2';
 import { updateLoginTime, debugAuth } from '../utils/userUtils';
-import CONFIG from '../config';
 
 class LogIn extends Component {
     constructor(props) {
@@ -76,7 +75,7 @@ class LogIn extends Component {
     testBackendConnection = async () => {
         try {
             // Fix: Change HTTPS to HTTP 
-            const response = await fetch('${CONFIG.BASE_URL}/test');
+            const response = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/test');
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -150,7 +149,7 @@ class LogIn extends Component {
         console.log('📤 Sending login request for:', loginData.email);
 
         try {
-            const response = await fetch('${CONFIG.BASE_URL}/login', {
+            const response = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
