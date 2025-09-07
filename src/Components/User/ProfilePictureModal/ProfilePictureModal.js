@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import './ProfilePictureModal.css';
 import { FaTimes, FaCheck } from 'react-icons/fa';
-import CONFIG from '../config';
 
 class ProfilePictureModal extends Component {
     constructor(props) {
@@ -21,7 +20,7 @@ class ProfilePictureModal extends Component {
 
     fetchPictureOptions = async () => {
         try {
-            const response = await fetch('${CONFIG.BASE_URL}/profilePictureOptions/6');
+            const response = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/profilePictureOptions/6');
             const data = await response.json();
 
             if (data.success && data.data) {
