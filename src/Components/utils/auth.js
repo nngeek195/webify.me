@@ -1,4 +1,4 @@
-import CONFIG from '../config';
+
 class SimpleAuth {
     static isLoggedIn() {
         const authData = localStorage.getItem('authData');
@@ -50,7 +50,7 @@ class SimpleAuth {
         }
 
         try {
-            const response = await fetch('${CONFIG.BASE_URL}/login', {
+            const response = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
