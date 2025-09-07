@@ -1,4 +1,4 @@
-
+import CONFIG from '../config';
 export const isUserLoggedIn = () => {
     const authData = localStorage.getItem('authData');
     const userData = localStorage.getItem('userData');
@@ -217,7 +217,7 @@ export const validateWithServer = async () => {
     }
 
     try {
-        const response = await fetch('https://pl-intelligent-coastal-gang.trycloudflare.com/login', {
+        const response = await fetch(`${CONFIG.BASE_URL}/login`, {  // <-- use backticks here
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -236,8 +236,7 @@ export const validateWithServer = async () => {
         return result.success;
     } catch (error) {
         console.error('Server validation error:', error);
-
-        return true;
+        return false; // safer to return false on error
     }
 };
 
