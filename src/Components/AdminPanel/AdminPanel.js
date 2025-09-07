@@ -3,7 +3,6 @@ import { FaTrash, FaEdit, FaEye, FaUsers, FaBell, FaChartBar, FaSearch, FaFilter
 import { MdSend, MdNotifications, MdPeople, MdDashboard, MdEmail, MdWarning, MdInfo, MdCheckCircle, MdSettings } from 'react-icons/md';
 import './AdminPanel.css';
 import Logo2 from '../User/Logo1.png'
-import CONFIG from '../config';
 
 class AdminPanel extends Component {
     constructor(props) {
@@ -56,7 +55,7 @@ class AdminPanel extends Component {
 
     fetchCurrentApiKeys = async () => {
         try {
-            const response = await fetch('${CONFIG.BASE_URL}/admin/api-keys');
+            const response = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/admin/api-keys');
             const data = await response.json();
 
             if (data.success) {
@@ -82,7 +81,7 @@ class AdminPanel extends Component {
         this.setState({ apiKeyLoading: true, apiKeyError: '', apiKeySuccess: '' });
 
         try {
-            const response = await fetch('${CONFIG.BASE_URL}/admin/api-keys', {
+            const response = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/admin/api-keys', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -118,7 +117,7 @@ class AdminPanel extends Component {
         this.setState({ apiKeyLoading: true, testResults: {} });
 
         try {
-            const response = await fetch('${CONFIG.BASE_URL}/admin/test-api-keys', {
+            const response = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/admin/test-api-keys', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -154,7 +153,7 @@ class AdminPanel extends Component {
 
     fetchAllNotifications = async () => {
         try {
-            const response = await fetch('${CONFIG.BASE_URL}/admin/notifications');
+            const response = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/admin/notifications');
             const data = await response.json();
 
             if (data.success) {
@@ -173,7 +172,7 @@ class AdminPanel extends Component {
 
     fetchUsers = async () => {
         try {
-            const response = await fetch('${CONFIG.BASE_URL}/users');
+            const response = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/users');
             const data = await response.json();
 
             console.log('Fetched users:', data);
@@ -195,11 +194,11 @@ class AdminPanel extends Component {
     fetchStats = async () => {
         try {
             // Fetch active users count
-            const activeUsersRes = await fetch('${CONFIG.BASE_URL}/users/active_count');
+            const activeUsersRes = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/users/active_count');
             const activeUsersData = await activeUsersRes.json();
 
             // Fetch notifications stats
-            const notificationsStatsRes = await fetch('${CONFIG.BASE_URL}/notifications/stats');
+            const notificationsStatsRes = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/notifications/stats');
             const notificationsStatsData = await notificationsStatsRes.json();
 
             this.setState({
@@ -246,7 +245,7 @@ class AdminPanel extends Component {
         this.setState({ apiKeyLoading: true, apiKeyError: '', apiKeySuccess: '' });
 
         try {
-            const response = await fetch('${CONFIG.BASE_URL}/admin/api-keys', {
+            const response = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/admin/api-keys', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -283,7 +282,7 @@ class AdminPanel extends Component {
         this.setState({ apiKeyLoading: true, testResults: {} });
 
         try {
-            const response = await fetch('${CONFIG.BASE_URL}/admin/test-api-keys', {
+            const response = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/admin/test-api-keys', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -327,7 +326,7 @@ class AdminPanel extends Component {
         this.setState({ loading: true, error: '', success: '' });
 
         try {
-            const response = await fetch('${CONFIG.BASE_URL}/admin/sendEmailNotification', {
+            const response = await fetch('https://accomplish-sullivan-pt-sally.trycloudflare.com/admin/sendEmailNotification', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
