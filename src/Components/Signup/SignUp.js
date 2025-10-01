@@ -30,7 +30,7 @@ class SignUp extends Component {
         this.setState({ checkingEmail: true, emailError: '' });
 
         try {
-            const response = await fetch(`https://gui-fixes-sale-suppose.trycloudflare.com/checkEmail/${encodeURIComponent(email)}`);
+            const response = await fetch(`https://dirt-driven-performing-supply.trycloudflare.com/checkEmail/${encodeURIComponent(email)}`);
             const data = await response.json();
 
             if (data.success && data.data?.exists) {
@@ -59,7 +59,7 @@ class SignUp extends Component {
         this.setState({ checkingUsername: true, usernameError: '' });
 
         try {
-            const response = await fetch(`https://gui-fixes-sale-suppose.trycloudflare.com/checkUsername/${encodeURIComponent(username)}`);
+            const response = await fetch(`https://dirt-driven-performing-supply.trycloudflare.com/checkUsername/${encodeURIComponent(username)}`);
             const data = await response.json();
 
             if (data.success && data.data?.exists) {
@@ -187,7 +187,7 @@ class SignUp extends Component {
         };
 
         try {
-            const response = await fetch('https://gui-fixes-sale-suppose.trycloudflare.com/signup', {
+            const response = await fetch('https://dirt-driven-performing-supply.trycloudflare.com/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
