@@ -769,7 +769,7 @@ class User extends Component {
       const parsedAuthData = JSON.parse(authData);
 
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch('https://gui-fixes-sale-suppose.trycloudflare.com/login', {
+      const response = await fetch('https://dirt-driven-performing-supply.trycloudflare.com/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -799,7 +799,7 @@ class User extends Component {
       return;
     }
     // Fix: Use HTTP instead of HTTPS
-    const flaskUrl = `https://gui-fixes-sale-suppose.trycloudflare.com/?userEmail=${encodeURIComponent(userEmail)}`;
+    const flaskUrl = `https://dirt-driven-performing-supply.trycloudflare.com/?userEmail=${encodeURIComponent(userEmail)}`;
     window.open(flaskUrl, '_blank');
   };
   submitCollaboration = async () => {
@@ -818,7 +818,7 @@ class User extends Component {
     }
 
     try {
-      const response = await fetch('https://gui-fixes-sale-suppose.trycloudflare.com/collaborations/add', {
+      const response = await fetch('https://dirt-driven-performing-supply.trycloudflare.com/collaborations/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -844,7 +844,7 @@ class User extends Component {
 
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch(`https://gui-fixes-sale-suppose.trycloudflare.com/presentations/${encodeURIComponent(userEmail)}`);
+      const response = await fetch(`https://dirt-driven-performing-supply.trycloudflare.com/presentations/${encodeURIComponent(userEmail)}`);
       const data = await response.json();
 
       if (data.success && Array.isArray(data.presentations)) {
@@ -868,7 +868,7 @@ class User extends Component {
   fetchTrendingPresentations = async () => {
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch('https://gui-fixes-sale-suppose.trycloudflare.com/trending');
+      const response = await fetch('https://dirt-driven-performing-supply.trycloudflare.com/trending');
       const data = await response.json();
       if (data.success) {
         const trendingPresentations = data.data.presentations.map(p => ({
@@ -895,7 +895,7 @@ class User extends Component {
     if (!userEmail) return;
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch(`https://gui-fixes-sale-suppose.trycloudflare.com/notifications/${encodeURIComponent(userEmail)}`);
+      const response = await fetch(`https://dirt-driven-performing-supply.trycloudflare.com/notifications/${encodeURIComponent(userEmail)}`);
       const data = await response.json();
       if (data.success && data.data) {
         this.setState({
@@ -913,7 +913,7 @@ class User extends Component {
     if (!userEmail) return;
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch(`https://gui-fixes-sale-suppose.trycloudflare.com/notifications/count/${encodeURIComponent(userEmail)}`);
+      const response = await fetch(`https://dirt-driven-performing-supply.trycloudflare.com/notifications/count/${encodeURIComponent(userEmail)}`);
       const data = await response.json();
       if (data.success && data.data) {
         this.setState({ notificationCount: data.data.emailCount || 0 });
@@ -926,7 +926,7 @@ class User extends Component {
   resetNotificationCount = async () => {
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch('https://gui-fixes-sale-suppose.trycloudflare.com/notifications/reset', {
+      const response = await fetch('https://dirt-driven-performing-supply.trycloudflare.com/notifications/reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userEmail: this.state.userEmail })
@@ -943,14 +943,14 @@ class User extends Component {
   previewPresentation = (presentationId) => {
     console.log('Preview clicked for:', presentationId);
     // Fix: Use HTTP instead of HTTPS
-    const previewUrl = `https://gui-fixes-sale-suppose.trycloudflare.com/presentations/view/${presentationId}`;
+    const previewUrl = `https://dirt-driven-performing-supply.trycloudflare.com/presentations/view/${presentationId}`;
     window.open(previewUrl, '_blank');
   };
 
   editPresentation = (presentationId) => {
     console.log('Edit clicked for:', presentationId);
     // Fix: Use HTTP instead of HTTPS
-    const editUrl = `https://gui-fixes-sale-suppose.trycloudflare.com/present/${presentationId}`;
+    const editUrl = `https://dirt-driven-performing-supply.trycloudflare.com/present/${presentationId}`;
     window.open(editUrl, '_blank');
   };
 
@@ -961,7 +961,7 @@ class User extends Component {
     }
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch(`https://gui-fixes-sale-suppose.trycloudflare.com/presentations/delete/${presentationId}`, {
+      const response = await fetch(`https://dirt-driven-performing-supply.trycloudflare.com/presentations/delete/${presentationId}`, {
         method: 'DELETE'
       });
       const data = await response.json();
@@ -981,14 +981,14 @@ class User extends Component {
 
   viewTrendingPresentation = (presentationId) => {
     // Fix: Use HTTP instead of HTTPS
-    const previewUrl = `https://gui-fixes-sale-suppose.trycloudflare.com/trending/view/${presentationId}`;
+    const previewUrl = `https://dirt-driven-performing-supply.trycloudflare.com/trending/view/${presentationId}`;
     window.open(previewUrl, '_blank');
   };
 
   assignRandomProfilePicture = async () => {
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch('https://gui-fixes-sale-suppose.trycloudflare.com/randomProfilePicture');
+      const response = await fetch('https://dirt-driven-performing-supply.trycloudflare.com/randomProfilePicture');
       const data = await response.json();
       if (data.success && data.data) {
         const pictureUrl = data.data.url;
@@ -1003,7 +1003,7 @@ class User extends Component {
   updateProfilePicture = async (pictureUrl, unsplashImageId) => {
     try {
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch('https://gui-fixes-sale-suppose.trycloudflare.com/updateProfilePicture', {
+      const response = await fetch('https://dirt-driven-performing-supply.trycloudflare.com/updateProfilePicture', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1032,7 +1032,7 @@ class User extends Component {
     try {
       const userEmail = this.state.userEmail;
       // Fix: Use HTTP instead of HTTPS
-      const response = await fetch('https://gui-fixes-sale-suppose.trycloudflare.com/messages/markRead', {
+      const response = await fetch('https://dirt-driven-performing-supply.trycloudflare.com/messages/markRead', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
